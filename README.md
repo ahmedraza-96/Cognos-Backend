@@ -76,7 +76,7 @@ See `.env.example`. Notable vars:
 | `CHECKPOINT_DB_URL` | Sync psycopg URL for the LangGraph checkpointer |
 | `HTTP_TOOL_ALLOWED_HOSTS` | Comma-separated host allowlist for the HTTP tool (SSRF guard) |
 | `MAX_UPLOAD_MB` | Upload size limit |
-| `CORS_ORIGINS` | Allowed frontend origins |
+| `CORS_ORIGINS` | Allowed frontend origins 
 
 ## Security notes
 
