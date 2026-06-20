@@ -1,4 +1,10 @@
-# Production stack — Postgres + FastAPI backend + Caddy (TLS) on one EC2 box.
+# Production stack — Postgres + FastAPI backend on the EC2.
+# NOTE: TLS/HTTPS is handled by the EXISTING Caddy already running on this box
+# (the one serving your :3000 app). We do NOT run a second Caddy here — two
+# Caddies cannot both bind ports 80/443. The backend is published only on
+# 127.0.0.1:8000 so that existing host Caddy can reverse_proxy to it.
+# See Caddyfile for the site block to add to your existing Caddy config.
+#
 # Usage on the server:
 #   docker compose -f docker-compose.prod.yml up -d --build
 services:
@@ -21,27 +27,16 @@ services:
     build: .
     restart: unless-stopped
     env_file: .env.production
+    # Publish ONLY to localhost so the existing host Caddy can reach it,
+    # but it is NOT exposed to the public internet directly.
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       - app-data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
 
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - backend
-
 volumes:
   pgdata:
   app-data:
-  caddy_data:
-  caddy_config:
