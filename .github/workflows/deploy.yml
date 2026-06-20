@@ -30,7 +30,12 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd "${{ secrets.EC2_APP_DIR }}"
+            APP_DIR="${{ secrets.EC2_APP_DIR }}"
+            # First run (or folder deleted): clone. Otherwise: pull latest.
+            if [ ! -d "$APP_DIR/.git" ]; then
+              git clone https://github.com/ahmedraza-96/Cognos-Backend.git "$APP_DIR"
+            fi
+            cd "$APP_DIR"
             git pull origin main
             docker compose -f docker-compose.prod.yml up -d --build
             docker image prune -f
