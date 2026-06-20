@@ -1,0 +1,12 @@
+# Replace <IP-WITH-DASHES> with the EC2 public IP using dashes.
+# Example: a server at 13.49.22.101 becomes  13-49-22-101.nip.io
+# nip.io resolves <ip-with-dashes>.nip.io -> that IP automatically, so no DNS
+# setup is needed. Caddy issues a Let's Encrypt cert for this hostname on boot.
+<IP-WITH-DASHES>.nip.io {
+    encode gzip
+
+    reverse_proxy backend:8000 {
+        # SSE streaming: don't buffer the token stream.
+        flush_interval -1
+    }
+}
