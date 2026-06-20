@@ -1,35 +1,3 @@
-# =============================================================================
-# This is NOT a standalone Caddyfile. Do NOT run a second Caddy.
-# The EC2 already has a Caddy serving 13.49.224.160.nip.io -> :3000.
-#
-# ADD the site block below to your EXISTING Caddyfile (alongside the :3000
-# block), then reload Caddy. nip.io resolves api.13.49.224.160.nip.io to the
-# same IP, so Caddy will fetch a separate Let's Encrypt cert for it.
-#
-# Your existing Caddyfile becomes:
-#
-#   13.49.224.160.nip.io {
-#       reverse_proxy localhost:3000
-#   }
-#
-#   :80 {
-#       reverse_proxy localhost:3000
-#   }
-#
-#   # ---- add this block for the FastAPI backend ----
-#   api.13.49.224.160.nip.io {
-#       reverse_proxy localhost:8000 {
-#           # SSE streaming: don't buffer the chat token stream
-#           flush_interval -1
-#       }
-#   }
-#
-# Reload after editing:
-#   host Caddy (systemd):   sudo systemctl reload caddy
-#   host Caddy (binary):    caddy reload --config /etc/caddy/Caddyfile
-#   Caddy in Docker:        docker exec <caddy_container> caddy reload --config /etc/caddy/Caddyfile
-# =============================================================================
-
 api.13.49.224.160.nip.io {
     reverse_proxy localhost:8000 {
         # SSE streaming: don't buffer the chat token stream
