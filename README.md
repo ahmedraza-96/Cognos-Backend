@@ -58,7 +58,7 @@ copy .env.example .env            # then edit .env:
 uvicorn app.main:app --reload     # http://localhost:8000  (interactive docs at /docs)
 ```
 
-## Tests
+## Test
 
 ``bash
 .venv\Scripts\python -m pytest    # 46 tests — uses SQLite + fake embeddings/agent
