@@ -60,7 +60,7 @@ uvicorn app.main:app --reload     # http://localhost:8000  (interactive docs at 
 
 ## Tests
 
-```bash
+``bash
 .venv\Scripts\python -m pytest    # 46 tests — uses SQLite + fake embeddings/agent
 ```
 
