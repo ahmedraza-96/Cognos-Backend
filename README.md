@@ -1,4 +1,4 @@
-# Cognos — Backend
+# Cognos — Backend v1
 
 > Chat with a tool-using AI agent over your own documents — streaming, with memory.
 
