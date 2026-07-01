@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from langchain_core.embeddings import Embeddings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,9 +23,12 @@ from app.rag.deps import (
     embeddings_provider,
     upload_dir_provider,
 )
-from app.schemas import DocumentResponse
+from app.schemas import ChunkResponse, DocumentResponse
 
 ALLOWED_EXTENSIONS = {".txt", ".md", ".pdf"}
+
+# Content types for serving the original file back for inline preview.
+_MEDIA_TYPES = {".pdf": "application/pdf", ".txt": "text/plain", ".md": "text/markdown"}
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -86,6 +90,55 @@ async def list_documents(
         .order_by(Document.created_at.desc())
     )
     return list(rows)
+
+
+@router.get("/{document_id}/chunks", response_model=list[ChunkResponse])
+async def get_document_chunks(
+    document_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    embeddings: Embeddings = Depends(embeddings_provider),
+    chroma_dir: str = Depends(chroma_dir_provider),
+) -> list[dict]:
+    doc = await db.get(Document, document_id)
+    if doc is None or doc.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    return vectorstore.get_document_chunks(
+        current_user.id,
+        document_id,
+        embeddings=embeddings,
+        persist_directory=chroma_dir,
+    )
+
+
+@router.get("/{document_id}/file")
+async def get_document_file(
+    document_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    upload_dir: str = Depends(upload_dir_provider),
+) -> FileResponse:
+    """Serve the original uploaded file for inline preview.
+
+    The raw file was saved at upload time as {upload_dir}/{document_id}{ext};
+    reconstruct that path from the document's filename extension.
+    """
+    doc = await db.get(Document, document_id)
+    if doc is None or doc.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    ext = Path(doc.filename or "").suffix.lower()
+    path = Path(upload_dir) / f"{document_id}{ext}"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="File is no longer available")
+
+    return FileResponse(
+        path,
+        media_type=_MEDIA_TYPES.get(ext, "application/octet-stream"),
+        filename=doc.filename,
+        content_disposition_type="inline",
+    )
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)

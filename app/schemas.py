@@ -38,6 +38,13 @@ class DocumentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChunkResponse(BaseModel):
+    # Built from a Chroma dict, not an ORM row, so no from_attributes.
+    id: str
+    chunk: int
+    content: str
+
+
 # --- Conversations / chat ---
 class ConversationResponse(BaseModel):
     id: str
